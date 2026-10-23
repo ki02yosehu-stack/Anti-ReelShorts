@@ -9,6 +9,7 @@
     <string name="block_youtube">YouTube Shorts をブロック</string>
     <string name="block_instagram">Instagram リール をブロック</string>
     <string name="cover_tabs">下のタブボタン（Shorts／リール）を覆って押せなくする</string>
+    <string name="allow_dm_reels">DMで送られてきたリールは見られるようにする</string>
     <string name="howto">使い方\n\n1. 「ユーザー補助の設定を開く」をタップ\n2. 「インストール済みのアプリ」→「Anti ReelShorts」→ オンにする\n\nスイッチがグレーで押せないとき（Android 13以降）：\n設定 → アプリ → Anti ReelShorts → 右上の「⋮」→「制限付き設定を許可」をタップしてから、もう一度オンにしてください。</string>
     <string name="blocked_toast">%1$s をブロックしました</string>
 </resources>

@@ -23,6 +23,7 @@ class MainActivity : Activity() {
         bindSwitch(R.id.block_youtube, Prefs.KEY_BLOCK_YOUTUBE)
         bindSwitch(R.id.block_instagram, Prefs.KEY_BLOCK_INSTAGRAM)
         bindSwitch(R.id.cover_tabs, Prefs.KEY_COVER_TABS)
+        bindSwitch(R.id.allow_dm_reels, Prefs.KEY_ALLOW_DM_REELS)
     }
 
     override fun onResume() {

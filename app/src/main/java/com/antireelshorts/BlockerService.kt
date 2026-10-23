@@ -30,6 +30,12 @@ class BlockerService : AccessibilityService() {
     private var lastBackAt = 0L
     private var lastToastAt = 0L
 
+    // Where the current short-video player was opened from, for allowedOriginIds.
+    private var statePackage: String? = null
+    private var viewerOpen = false
+    private var viewerAllowed = false
+    private var inAllowedOrigin = false
+
     private lateinit var windowManager: WindowManager
     private val covers = mutableListOf<View>()
     private val coveredRects = mutableListOf<Rect>()
@@ -70,12 +76,36 @@ class BlockerService : AccessibilityService() {
             return
         }
 
+        if (target.packageName != statePackage) {
+            statePackage = target.packageName
+            viewerOpen = false
+            inAllowedOrigin = false
+        }
+
+        val tabRects = findTabRects(root, target)
+
         if (target.viewerIds.any { isVisible(root, target.packageName, it) }) {
-            goBack(target)
+            if (!viewerOpen) {
+                // Decide once per opening, based on the screen it was opened from.
+                viewerOpen = true
+                viewerAllowed = inAllowedOrigin &&
+                    target.allowOriginPrefKey?.let { Prefs.isOn(this, it) } == true
+            }
+            if (!viewerAllowed) goBack(target)
+        } else {
+            viewerOpen = false
+            // Only a positive sighting changes this, so blank frames during the
+            // opening animation don't reset it. Seeing the bottom tab bar means
+            // we're back on a main screen.
+            if (target.allowedOriginIds.any { isVisible(root, target.packageName, it) }) {
+                inAllowedOrigin = true
+            } else if (tabRects.isNotEmpty()) {
+                inAllowedOrigin = false
+            }
         }
 
         if (Prefs.isOn(this, Prefs.KEY_COVER_TABS)) {
-            showCovers(findTabRects(root, target))
+            showCovers(tabRects)
         } else {
             removeCovers()
         }

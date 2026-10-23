@@ -19,6 +19,12 @@ data class Target(
     val tabIds: List<String>,
     /** Content descriptions of that button, for app versions without a stable ID. */
     val tabDescriptions: List<String>,
+    /**
+     * IDs of screens from which opening the player is allowed (e.g. a DM thread),
+     * and the preference key that turns that exception on/off.
+     */
+    val allowedOriginIds: List<String> = emptyList(),
+    val allowOriginPrefKey: String? = null,
 )
 
 object Targets {
@@ -47,6 +53,13 @@ object Targets {
         ),
         tabIds = listOf("clips_tab"),
         tabDescriptions = listOf("Reels", "リール"),
+        // Views that only exist inside a DM conversation.
+        allowedOriginIds = listOf(
+            "row_thread_composer_edittext",
+            "direct_thread_composer_container",
+            "message_list",
+        ),
+        allowOriginPrefKey = Prefs.KEY_ALLOW_DM_REELS,
     )
 
     private val all = listOf(YOUTUBE, INSTAGRAM)

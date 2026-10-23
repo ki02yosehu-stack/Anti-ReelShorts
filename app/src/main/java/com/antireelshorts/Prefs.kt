@@ -7,6 +7,7 @@ object Prefs {
     const val KEY_BLOCK_YOUTUBE = "block_youtube"
     const val KEY_BLOCK_INSTAGRAM = "block_instagram"
     const val KEY_COVER_TABS = "cover_tabs"
+    const val KEY_ALLOW_DM_REELS = "allow_dm_reels"
 
     fun get(context: Context): SharedPreferences =
         context.getSharedPreferences("settings", Context.MODE_PRIVATE)
