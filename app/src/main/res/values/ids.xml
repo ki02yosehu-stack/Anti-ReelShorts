@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="erasure_tab" type="id" />
+    <item name="erasure_collapsed" type="id" />
+    <item name="erasure_saved_visibility" type="id" />
+    <item name="erasure_saved_height" type="id" />
+    <item name="erasure_saved_width" type="id" />
+    <item name="erasure_modified" type="id" />
+    <item name="erasure_close_attempts" type="id" />
+    <item name="erasure_last_close" type="id" />
+</resources>

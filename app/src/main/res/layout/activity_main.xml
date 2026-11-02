@@ -17,19 +17,12 @@
             android:textSize="28sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:textSize="20sp" />
-
         <Button
-            android:id="@+id/open_settings"
+            android:id="@+id/open_manager"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/open_settings" />
+            android:text="@string/open_manager" />
 
         <Switch
             android:id="@+id/block_youtube"
@@ -46,14 +39,6 @@
             android:layout_height="wrap_content"
             android:minHeight="48dp"
             android:text="@string/block_instagram"
-            android:textSize="16sp" />
-
-        <Switch
-            android:id="@+id/cover_tabs"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="48dp"
-            android:text="@string/cover_tabs"
             android:textSize="16sp" />
 
         <TextView
