@@ -1,30 +1,34 @@
 package com.antireelshorts
 
 /**
- * What to look for in each blocked app.
+ * What to erase in each app.
  *
- * View IDs are internal to Instagram / YouTube and can change when those apps
- * update. If blocking stops working after an update, these lists are the
- * place to fix it.
+ * View ids are internal to Instagram / YouTube and can change when those apps
+ * update. Class names are obfuscated, so they are intentionally not listed.
+ * If a surface comes back after an update, these lists are the place to fix it.
  */
 data class Target(
     val packageName: String,
-    /** Shown in the "blocked" toast. */
+    /** Shown in the settings screen. */
     val label: String,
-    /** Preference key that turns this target on/off. */
+    /** Preference key that turns this target on or off. */
     val prefKey: String,
-    /** IDs of views that only exist while the short-video player is on screen. */
+    /** Ids of views that fill the screen only while the short-form player is up. */
     val viewerIds: List<String>,
-    /** IDs of the bottom-navigation button that opens the short-video tab. */
+    /** Ids of the bottom-bar button that opens the short-form tab. */
     val tabIds: List<String>,
-    /** Content descriptions of that button, for app versions without a stable ID. */
+    /** Exact content descriptions of that button. */
     val tabDescriptions: List<String>,
+    /** Ids of a shelf or card that is the short-form row in a feed. */
+    val shelfIds: List<String>,
+    /** Exact text or description of a shelf header or a short-form card. */
+    val shelfDescriptions: List<String>,
 )
 
 object Targets {
     val YOUTUBE = Target(
         packageName = "com.google.android.youtube",
-        label = "Shorts",
+        label = "YouTube Shorts",
         prefKey = Prefs.KEY_BLOCK_YOUTUBE,
         viewerIds = listOf(
             "reel_recycler",
@@ -34,11 +38,18 @@ object Targets {
         ),
         tabIds = emptyList(),
         tabDescriptions = listOf("Shorts", "ショート"),
+        shelfIds = listOf(
+            "reel_shelf_container",
+            "shorts_shelf",
+            "reel_multiple_items_shelf",
+            "shorts_shelf_item",
+        ),
+        shelfDescriptions = listOf("Shorts", "ショート"),
     )
 
     val INSTAGRAM = Target(
         packageName = "com.instagram.android",
-        label = "リール",
+        label = "Instagram リール",
         prefKey = Prefs.KEY_BLOCK_INSTAGRAM,
         viewerIds = listOf(
             "clips_viewer_view_pager",
@@ -47,6 +58,12 @@ object Targets {
         ),
         tabIds = listOf("clips_tab"),
         tabDescriptions = listOf("Reels", "リール"),
+        shelfIds = listOf(
+            "clips_preview",
+            "reel_preview",
+            "clips_item_container",
+        ),
+        shelfDescriptions = listOf("Reels", "リール"),
     )
 
     private val all = listOf(YOUTUBE, INSTAGRAM)

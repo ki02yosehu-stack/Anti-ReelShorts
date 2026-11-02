@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Anti ReelShorts</string>
-    <string name="service_label">Anti ReelShorts（リール・Shortsブロック）</string>
-    <string name="service_description">YouTubeのShortsとInstagramのリールの画面を検知して自動で閉じ、タブボタンを押せないように覆います。画面の内容はこの端末の中だけで判定され、どこにも送信されません。</string>
-    <string name="status_on">✅ ブロック中</string>
-    <string name="status_off">⚠️ まだ有効になっていません</string>
-    <string name="open_settings">ユーザー補助の設定を開く</string>
-    <string name="block_youtube">YouTube Shorts をブロック</string>
-    <string name="block_instagram">Instagram リール をブロック</string>
-    <string name="cover_tabs">下のタブボタン（Shorts／リール）を覆って押せなくする</string>
-    <string name="howto">使い方\n\n1. 「ユーザー補助の設定を開く」をタップ\n2. 「インストール済みのアプリ」→「Anti ReelShorts」→ オンにする\n\nスイッチがグレーで押せないとき（Android 13以降）：\n設定 → アプリ → Anti ReelShorts → 右上の「⋮」→「制限付き設定を許可」をタップしてから、もう一度オンにしてください。</string>
-    <string name="blocked_toast">%1$s をブロックしました</string>
+    <string name="xposed_description">YouTubeのShortsとInstagramのリールを、公式アプリの画面から消します。判定はこの端末の中だけで行われ、どこにも送信されません。</string>
+    <string name="open_manager">LSPosed Manager を開く</string>
+    <string name="manager_missing">LSPosed Manager が見つかりません。通知の LSPosed からモジュールを有効にしてください。</string>
+    <string name="block_youtube">YouTube Shorts を消す</string>
+    <string name="block_instagram">Instagram リール を消す</string>
+    <string name="howto">使い方\n\n1. Magisk で Zygisk を有効にし、LSPosed を入れる\n2. LSPosed で「Anti ReelShorts」を有効にする\n3. スコープに YouTube と Instagram を入れる\n4. 両方のアプリを強制停止してから開き直す\n\n下のタブ、フィードの棚、検索結果から Shorts とリールを消し、残りの項目は詰めます。通常の動画、投稿、ストーリーズはそのままです。YouTube の Shorts リンクは通常の再生画面で開きます。\n\nスイッチを変えたあとは、対象のアプリを開き直してください。</string>
 </resources>

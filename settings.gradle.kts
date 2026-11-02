@@ -14,3 +14,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "AntiReelShorts"
 include(":app")
+include(":xposed-api")
