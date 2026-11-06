@@ -1,0 +1,41 @@
+/*
+ * Hides the Reels / Shorts UI. Built into the app; extra rules can be added
+ * without reinstalling via webbox/rules/remote.css in the repository.
+ *
+ * Each rule stands alone on purpose: one selector the browser doesn't
+ * understand would otherwise disable a whole rule.
+ */
+
+/* ---------- YouTube (m.youtube.com) ---------- */
+
+/* Bottom "Shorts" tab. */
+ytm-pivot-bar-item-renderer:has(.pivot-shorts) { display: none !important; }
+.pivot-shorts { display: none !important; }
+
+/* Shorts shelves on home, search and watch pages. */
+ytm-reel-shelf-renderer { display: none !important; }
+ytm-shorts-lockup-view-model { display: none !important; }
+ytm-shorts-lockup-view-model-v2 { display: none !important; }
+ytm-rich-section-renderer:has(ytm-reel-shelf-renderer) { display: none !important; }
+ytm-rich-section-renderer:has(ytm-shorts-lockup-view-model) { display: none !important; }
+ytm-rich-section-renderer:has(ytm-shorts-lockup-view-model-v2) { display: none !important; }
+grid-shelf-view-model:has(ytm-shorts-lockup-view-model) { display: none !important; }
+grid-shelf-view-model:has(ytm-shorts-lockup-view-model-v2) { display: none !important; }
+ytm-item-section-renderer:has(> ytm-reel-shelf-renderer) { display: none !important; }
+
+/* Single Shorts mixed into lists of normal videos. */
+ytm-video-with-context-renderer:has(a[href^="/shorts/"]) { display: none !important; }
+ytm-compact-video-renderer:has(a[href^="/shorts/"]) { display: none !important; }
+ytm-rich-item-renderer:has(a[href^="/shorts/"]) { display: none !important; }
+
+/* "Shorts" tab on channel pages. */
+a[href$="/shorts"] { display: none !important; }
+
+/* ---------- Instagram (www.instagram.com) ---------- */
+
+/* "Reels" in the navigation bar. */
+a[href="/reels/"] { display: none !important; }
+a[href^="/reels/"] { display: none !important; }
+
+/* "Reels" tab on profile pages. */
+a[href$="/reels/"] { display: none !important; }

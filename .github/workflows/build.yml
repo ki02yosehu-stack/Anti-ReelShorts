@@ -23,13 +23,20 @@ jobs:
       - name: Build
         run: ./gradlew --no-daemon assembleDebug
 
-      - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk AntiReelShorts.apk
+      - name: Show GeckoView version
+        run: ./gradlew --no-daemon -q :webbox:dependencies --configuration debugRuntimeClasspath | grep -m1 geckoview
+
+      - name: Rename APKs
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk AntiReelShorts.apk
+          cp webbox/build/outputs/apk/debug/webbox-debug.apk AntiReelShortsWeb.apk
 
       - uses: actions/upload-artifact@v4
         with:
           name: AntiReelShorts
-          path: AntiReelShorts.apk
+          path: |
+            AntiReelShorts.apk
+            AntiReelShortsWeb.apk
 
       # Publish to a fixed "latest" release so the APK can be downloaded
       # straight from a phone browser.
@@ -40,4 +47,6 @@ jobs:
           tag_name: latest-${{ github.ref_name }}
           name: 最新ビルド (${{ github.ref_name }})
           prerelease: ${{ github.ref_name != 'main' }}
-          files: AntiReelShorts.apk
+          files: |
+            AntiReelShorts.apk
+            AntiReelShortsWeb.apk

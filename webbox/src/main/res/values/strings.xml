@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Anti ReelShorts Web</string>
+    <string name="tab_instagram">Instagram</string>
+    <string name="tab_youtube">YouTube</string>
+    <string name="blocked_reels">リールをブロックしました</string>
+</resources>
