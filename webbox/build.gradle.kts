@@ -25,6 +25,14 @@ android {
         }
     }
 
+    // GeckoView's engine is ~150 MB uncompressed. Compressing it in the APK
+    // makes the download much smaller (it's unpacked once at install).
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
