@@ -10,6 +10,9 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      SIGNING_KEYSTORE_B64: ${{ secrets.SIGNING_KEYSTORE_B64 }}
+      SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
 
@@ -19,6 +22,12 @@ jobs:
           java-version: 17
 
       - uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up signing key
+        if: env.SIGNING_KEYSTORE_B64 != ''
+        run: |
+          echo "$SIGNING_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/signing.keystore"
+          echo "SIGNING_KEYSTORE=$RUNNER_TEMP/signing.keystore" >> "$GITHUB_ENV"
 
       - name: Build
         run: ./gradlew --no-daemon assembleDebug

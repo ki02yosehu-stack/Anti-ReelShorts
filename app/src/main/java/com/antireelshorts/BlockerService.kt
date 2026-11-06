@@ -36,6 +36,8 @@ class BlockerService : AccessibilityService() {
     private var viewerAllowed = false
     private var inAllowedOrigin = false
 
+    private var connectedAt = 0L
+
     private lateinit var windowManager: WindowManager
     private val covers = mutableListOf<View>()
     private val coveredRects = mutableListOf<Rect>()
@@ -43,13 +45,20 @@ class BlockerService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
+        connectedAt = SystemClock.uptimeMillis()
+        // In auto mode we're switched on after the app has already opened, so
+        // there may be no further events to react to.
+        checkScheduled = true
+        handler.postDelayed(checkRunnable, CHECK_DELAY_MS)
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         val pkg = event.packageName?.toString()
-        // Ignore unrelated apps unless a cover is showing and might need removing.
+        // Ignore unrelated apps' content changes unless a cover is showing and might
+        // need removing. Window changes still count: they mean another app came up.
         if (Targets.forPackage(pkg) == null && covers.isEmpty() &&
-            event.eventType != AccessibilityEvent.TYPE_WINDOWS_CHANGED
+            event.eventType != AccessibilityEvent.TYPE_WINDOWS_CHANGED &&
+            event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED
         ) return
 
         // Content-changed events fire constantly while videos play; coalesce them.
@@ -73,6 +82,7 @@ class BlockerService : AccessibilityService() {
         val target = Targets.forPackage(root?.packageName?.toString())
         if (root == null || target == null || !Prefs.isOn(this, target.prefKey)) {
             removeCovers()
+            if (root != null && target == null) turnOffIfAutoMode(root.packageName?.toString())
             return
         }
 
@@ -109,6 +119,21 @@ class BlockerService : AccessibilityService() {
         } else {
             removeCovers()
         }
+    }
+
+    /**
+     * In auto mode, switch off as soon as another app comes up rather than
+     * waiting for WatcherService to notice, so apps that check for enabled
+     * accessibility services at launch (e.g. PayPay) don't see us.
+     */
+    private fun turnOffIfAutoMode(pkg: String?) {
+        if (pkg == null || pkg in KEEP_ON_PACKAGES || pkg == packageName) return
+        // Right after being switched on, the active window can still be the
+        // launcher from which Instagram / YouTube was opened.
+        if (SystemClock.uptimeMillis() - connectedAt < STARTUP_GRACE_MS) return
+        if (!AutoToggle.isActive(this)) return
+        removeCovers()
+        disableSelf()
     }
 
     private fun isVisible(root: AccessibilityNodeInfo, pkg: String, id: String): Boolean =
@@ -205,5 +230,9 @@ class BlockerService : AccessibilityService() {
         const val CHECK_DELAY_MS = 150L
         const val BACK_COOLDOWN_MS = 800L
         const val TOAST_COOLDOWN_MS = 5_000L
+        const val STARTUP_GRACE_MS = 2_000L
+
+        /** Windows that can show on top of Instagram / YouTube without leaving them. */
+        val KEEP_ON_PACKAGES = setOf("com.android.systemui")
     }
 }

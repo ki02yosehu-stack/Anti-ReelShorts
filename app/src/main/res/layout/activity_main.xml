@@ -67,6 +67,79 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:text="@string/auto_title"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/auto_explain"
+            android:textSize="14sp" />
+
+        <Switch
+            android:id="@+id/auto_mode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:minHeight="48dp"
+            android:text="@string/auto_mode"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/auto_usage_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/auto_usage_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/auto_usage_button" />
+
+        <TextView
+            android:id="@+id/auto_adb_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textSize="16sp" />
+
+        <LinearLayout
+            android:id="@+id/auto_adb_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/auto_adb_howto"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/auto_adb_command"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="monospace"
+                android:textIsSelectable="true"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/auto_copy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/auto_copy" />
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:text="@string/howto"
             android:textSize="14sp" />

@@ -10,6 +10,20 @@
     <string name="block_instagram">Instagram リール をブロック</string>
     <string name="cover_tabs">下のタブボタン（Shorts／リール）を覆って押せなくする</string>
     <string name="allow_dm_reels">DMで送られてきたリールは見られるようにする</string>
+    <string name="status_auto">✅ 自動モード：インスタ／YouTubeを開いたときだけオン</string>
+    <string name="auto_title">自動モード（PayPay対策）</string>
+    <string name="auto_mode">インスタ／YouTubeを開いたときだけユーザー補助をオンにする</string>
+    <string name="auto_explain">ほかのアプリを使っている間はユーザー補助がオフになるので、PayPayなどユーザー補助を嫌うアプリも使えます。使うには下の2つの準備が必要です。</string>
+    <string name="auto_usage_ok">✅ ① 使用状況へのアクセス：許可済み</string>
+    <string name="auto_usage_ng">⚠️ ① 使用状況へのアクセス：未許可</string>
+    <string name="auto_usage_button">使用状況へのアクセスを許可する</string>
+    <string name="auto_adb_ok">✅ ② 設定の書き換え権限：許可済み</string>
+    <string name="auto_adb_ng">⚠️ ② 設定の書き換え権限：未許可（PCから一度だけコマンドを実行）</string>
+    <string name="auto_adb_howto">PCとスマホをUSBでつなぎ（スマホ側で「USBデバッグ」をオン）、PCで次のコマンドを実行してください。アプリを入れ直したときは、もう一度必要です。</string>
+    <string name="auto_copy">コマンドをコピー</string>
+    <string name="auto_copied">コピーしました</string>
+    <string name="auto_channel_name">自動モード</string>
+    <string name="auto_notification_title">インスタ／YouTubeを見張っています</string>
     <string name="howto">使い方\n\n1. 「ユーザー補助の設定を開く」をタップ\n2. 「インストール済みのアプリ」→「Anti ReelShorts」→ オンにする\n\nスイッチがグレーで押せないとき（Android 13以降）：\n設定 → アプリ → Anti ReelShorts → 右上の「⋮」→「制限付き設定を許可」をタップしてから、もう一度オンにしてください。</string>
     <string name="blocked_toast">%1$s をブロックしました</string>
 </resources>
