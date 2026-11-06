@@ -4,7 +4,12 @@ plugins {
 
 android {
     namespace = "com.antireelshorts.webbox"
-    compileSdk = 37
+    // GeckoView 159 needs API 37.2.
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 2
+        }
+    }
 
     defaultConfig {
         applicationId = "com.antireelshorts.webbox"
