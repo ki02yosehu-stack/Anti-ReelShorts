@@ -15,14 +15,21 @@ android {
         applicationId = "com.antireelshorts.webbox"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
     }
 
     buildTypes {
+        // The release build is what gets installed: a debuggable app runs its
+        // Java/Kotlin code (incl. GeckoView's) without ahead-of-time compilation.
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug")
         }
+    }
+
+    lint {
+        checkReleaseBuilds = false
     }
 
     // GeckoView's engine is ~150 MB uncompressed. Compressing it in the APK

@@ -21,12 +21,12 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Build
-        run: ./gradlew --no-daemon assembleDebug
+        run: ./gradlew --no-daemon :app:assembleDebug :webbox:assembleRelease
 
       - name: Rename APKs
         run: |
           cp app/build/outputs/apk/debug/app-debug.apk AntiReelShorts.apk
-          cp webbox/build/outputs/apk/debug/webbox-debug.apk AntiReelShortsWeb.apk
+          cp webbox/build/outputs/apk/release/webbox-release.apk AntiReelShortsWeb.apk
 
       - uses: actions/upload-artifact@v4
         with:

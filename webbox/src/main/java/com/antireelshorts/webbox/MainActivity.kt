@@ -111,8 +111,13 @@ class MainActivity : Activity() {
     private fun select(site: Site) {
         val tab = tabs.getValue(site)
         if (current !== tab) {
-            if (current != null) geckoView.releaseSession()
+            current?.let {
+                geckoView.releaseSession()
+                // Otherwise the hidden tab keeps running scripts and playing video.
+                it.session.setActive(false)
+            }
             geckoView.setSession(tab.session)
+            tab.session.setActive(true)
             current = tab
             getPreferences(MODE_PRIVATE).edit().putInt(KEY_TAB, site.ordinal).apply()
         }
