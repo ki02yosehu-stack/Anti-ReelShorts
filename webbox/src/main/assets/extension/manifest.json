@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Anti ReelShorts Web",
   "version": "1.0",
-  "description": "Hides Instagram Reels and YouTube Shorts.",
+  "description": "Hides YouTube Shorts.",
   "browser_specific_settings": {
     "gecko": {
       "id": "webbox@antireelshorts"
@@ -10,6 +10,9 @@
   },
   "permissions": [
     "storage",
+    "nativeMessaging",
+    "nativeMessagingFromContent",
+    "geckoViewAddons",
     "https://raw.githubusercontent.com/*"
   ],
   "background": {
@@ -20,23 +23,15 @@
   "content_scripts": [
     {
       "matches": [
-        "*://*.youtube.com/*",
-        "*://*.instagram.com/*"
+        "*://*.youtube.com/*"
       ],
       "css": [
         "hide.css"
       ],
       "js": [
-        "content.js"
-      ],
-      "run_at": "document_start"
-    },
-    {
-      "matches": [
-        "*://*.youtube.com/*"
-      ],
-      "js": [
-        "shorts.js"
+        "content.js",
+        "shorts.js",
+        "player.js"
       ],
       "run_at": "document_start"
     }

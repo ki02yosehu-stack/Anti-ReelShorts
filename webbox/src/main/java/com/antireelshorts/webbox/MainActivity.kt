@@ -1,86 +1,108 @@
 package com.antireelshorts.webbox
 
 import android.app.Activity
+import android.app.PendingIntent
+import android.app.PictureInPictureParams
+import android.app.RemoteAction
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.graphics.Typeface
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.util.Rational
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.widget.FrameLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
-import org.mozilla.geckoview.AllowOrDeny
-import org.mozilla.geckoview.GeckoResult
 import org.mozilla.geckoview.GeckoRuntime
-import org.mozilla.geckoview.GeckoSession
-import org.mozilla.geckoview.GeckoSession.NavigationDelegate
-import org.mozilla.geckoview.GeckoSession.PermissionDelegate.ContentPermission
-import org.mozilla.geckoview.GeckoSessionSettings
-import org.mozilla.geckoview.GeckoView
 
 /**
  * A "box" for the Instagram and YouTube websites: one tab each, full screen,
- * with Reels / Shorts removed by the built-in extension and [Rules].
+ * with Reels / Shorts removed. YouTube videos continue in picture-in-picture
+ * when leaving the app.
  */
-class MainActivity : Activity() {
+class MainActivity : Activity(), TabHost {
 
     private lateinit var runtime: GeckoRuntime
-    private lateinit var geckoView: GeckoView
     private lateinit var progress: ProgressBar
     private lateinit var tabBar: View
     private lateinit var prompts: Prompts
 
-    private lateinit var tabs: Map<Site, Tab>
-    private var current: Tab? = null
+    private lateinit var instagram: InstagramTab
+    private lateinit var youtube: YouTubeTab
+    private lateinit var tabs: Map<Site, BrowserTab>
+    private lateinit var labels: Map<Site, TextView>
+    private var current: BrowserTab? = null
     private var fullScreen = false
+    private var inPictureInPicture = false
+
     /** A link that arrived before the extension finished installing. */
     private var pendingLink: Pair<Site, String>? = null
     private var ready = false
 
-    private inner class Tab(val site: Site, val label: TextView) {
-        val session = GeckoSession(
-            GeckoSessionSettings.Builder()
-                .userAgentMode(GeckoSessionSettings.USER_AGENT_MODE_MOBILE)
-                .build()
-        )
-        var canGoBack = false
-        var url: String? = null
-        var loaded = false
-
-        init {
-            session.navigationDelegate = Navigation(this)
-            session.contentDelegate = Content(this)
-            session.progressDelegate = Progress(this)
-            session.promptDelegate = prompts
-            session.open(runtime)
+    private val pipReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (youtube.playing) youtube.pause() else youtube.play()
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        geckoView = findViewById(R.id.gecko)
         progress = findViewById(R.id.progress)
         tabBar = findViewById(R.id.tab_bar)
         prompts = Prompts(this)
-
         runtime = GeckoRuntime.getDefault(applicationContext)
-        tabs = mapOf(
-            Site.INSTAGRAM to Tab(Site.INSTAGRAM, findViewById(R.id.tab_instagram)),
-            Site.YOUTUBE to Tab(Site.YOUTUBE, findViewById(R.id.tab_youtube)),
+        RemoteRules.refresh(this)
+
+        instagram = InstagramTab(this, this)
+        youtube = YouTubeTab(this, runtime, prompts, this) { updatePictureInPicture() }
+        tabs = mapOf(Site.INSTAGRAM to instagram, Site.YOUTUBE to youtube)
+        labels = mapOf(
+            Site.INSTAGRAM to findViewById(R.id.tab_instagram),
+            Site.YOUTUBE to findViewById(R.id.tab_youtube),
         )
-        tabs.values.forEach { tab -> tab.label.setOnClickListener { select(tab.site) } }
+        val content = findViewById<FrameLayout>(R.id.content)
+        tabs.values.forEach { tab ->
+            tab.view.visibility = View.GONE
+            tab.setShown(false)
+            content.addView(tab.view, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+        }
+        labels.forEach { (site, label) -> label.setOnClickListener { select(site) } }
+
+        val filter = IntentFilter(ACTION_PIP_PLAY_PAUSE)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(pipReceiver, filter, RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(pipReceiver, filter)
+        }
 
         pendingLink = intent?.data?.let(Rules::fromExternalLink)
 
-        // Load pages only once the extension is in place, so Reels / Shorts
-        // never flash up on the first page.
+        // Load YouTube only once the extension is in place, so Shorts never
+        // flash up on the first page.
         runtime.webExtensionController
             .ensureBuiltIn(EXTENSION_URI, EXTENSION_ID)
-            .accept({ start() }, { e -> Log.e(TAG, "Couldn't install the extension", e); start() })
+            .accept(
+                { extension ->
+                    extension?.let(youtube::attachExtension)
+                    start()
+                },
+                { e ->
+                    Log.e(TAG, "Couldn't install the extension", e)
+                    start()
+                },
+            )
     }
 
     private fun start() {
@@ -102,9 +124,7 @@ class MainActivity : Activity() {
 
     private fun open(link: Pair<Site, String>) {
         val (site, url) = link
-        val tab = tabs.getValue(site)
-        tab.loaded = true
-        tab.session.loadUri(url)
+        tabs.getValue(site).load(url)
         select(site)
     }
 
@@ -112,32 +132,30 @@ class MainActivity : Activity() {
         val tab = tabs.getValue(site)
         if (current !== tab) {
             current?.let {
-                geckoView.releaseSession()
-                // Otherwise the hidden tab keeps running scripts and playing video.
-                it.session.setActive(false)
+                it.view.visibility = View.GONE
+                it.setShown(false)
             }
-            geckoView.setSession(tab.session)
-            tab.session.setActive(true)
+            tab.view.visibility = View.VISIBLE
+            tab.setShown(true)
             current = tab
+            progress.visibility = View.GONE
             getPreferences(MODE_PRIVATE).edit().putInt(KEY_TAB, site.ordinal).apply()
         }
-        if (!tab.loaded) {
-            tab.loaded = true
-            tab.session.loadUri(site.homeUrl)
+        if (!tab.loaded) tab.load(site.homeUrl)
+        labels.forEach { (labelSite, label) ->
+            val selected = labelSite == site
+            label.setTextColor(getColor(if (selected) R.color.tab_selected else R.color.tab_unselected))
+            label.setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
         }
-        tabs.values.forEach {
-            val selected = it === tab
-            it.label.setTextColor(getColor(if (selected) R.color.tab_selected else R.color.tab_unselected))
-            it.label.setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
-        }
+        updatePictureInPicture()
     }
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         val tab = current
         when {
-            fullScreen -> tab?.session?.exitFullScreen()
-            tab != null && tab.canGoBack -> tab.session.goBack()
+            fullScreen -> tab?.exitFullScreen()
+            tab != null && tab.canGoBack -> tab.goBack()
             // Keep the tabs alive in the background, like an app would.
             else -> moveTaskToBack(true)
         }
@@ -147,16 +165,92 @@ class MainActivity : Activity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         prompts.onActivityResult(requestCode, resultCode, data)
+        instagram.onActivityResult(requestCode, resultCode, data)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Leaving without picture-in-picture, or closing its window.
+        if (youtube.playing) youtube.pause()
     }
 
     override fun onDestroy() {
-        tabs.values.forEach { it.session.close() }
+        unregisterReceiver(pipReceiver)
+        tabs.values.forEach { it.close() }
         super.onDestroy()
     }
 
-    private fun setFullScreen(enabled: Boolean) {
+    // ---------- Picture-in-picture ----------
+
+    private val pipSupported by lazy {
+        packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
+    }
+
+    private fun wantsPictureInPicture() = current === youtube && youtube.playing
+
+    private fun pictureInPictureParams(): PictureInPictureParams {
+        val playing = youtube.playing
+        val label = getString(if (playing) R.string.pip_pause else R.string.pip_play)
+        val action = RemoteAction(
+            Icon.createWithResource(this, if (playing) android.R.drawable.ic_media_pause else android.R.drawable.ic_media_play),
+            label,
+            label,
+            PendingIntent.getBroadcast(
+                this, 0, Intent(ACTION_PIP_PLAY_PAUSE).setPackage(packageName), PendingIntent.FLAG_IMMUTABLE
+            ),
+        )
+        return PictureInPictureParams.Builder()
+            .setAspectRatio(Rational(16, 9))
+            .setActions(listOf(action))
+            .apply {
+                // Android 12+: go into picture-in-picture smoothly on the home gesture.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) setAutoEnterEnabled(wantsPictureInPicture())
+            }
+            .build()
+    }
+
+    /** Keeps the play/pause button and auto-enter in step with the video. */
+    private fun updatePictureInPicture() {
+        if (!pipSupported) return
+        try {
+            setPictureInPictureParams(pictureInPictureParams())
+        } catch (e: IllegalStateException) {
+            // Picture-in-picture is turned off for this app in system settings.
+        }
+    }
+
+    override fun onUserLeaveHint() {
+        super.onUserLeaveHint()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S || !pipSupported || !wantsPictureInPicture()) return
+        try {
+            enterPictureInPictureMode(pictureInPictureParams())
+        } catch (e: IllegalStateException) {
+            // Picture-in-picture is turned off for this app in system settings.
+        }
+    }
+
+    override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: Configuration) {
+        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
+        inPictureInPicture = isInPictureInPictureMode
+        youtube.setPictureInPicture(isInPictureInPictureMode)
+        updateChrome()
+    }
+
+    // ---------- TabHost ----------
+
+    override fun onBlocked() {
+        Toast.makeText(this, R.string.blocked_reels, Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onProgress(tab: BrowserTab, progress: Int) {
+        if (current !== tab) return
+        this.progress.progress = progress
+        this.progress.visibility = if (progress in 1..99 && !inPictureInPicture) View.VISIBLE else View.GONE
+    }
+
+    override fun onFullScreen(enabled: Boolean) {
         fullScreen = enabled
-        tabBar.visibility = if (enabled) View.GONE else View.VISIBLE
+        updateChrome()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val controller = window.insetsController ?: return
             if (enabled) {
@@ -176,101 +270,11 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun showBlocked() {
-        Toast.makeText(this, R.string.blocked_reels, Toast.LENGTH_SHORT).show()
-    }
-
-    private inner class Navigation(private val tab: Tab) : NavigationDelegate {
-        override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) {
-            tab.canGoBack = canGoBack
-        }
-
-        /** Full page loads: links, typed URLs, redirects. */
-        override fun onLoadRequest(
-            session: GeckoSession,
-            request: NavigationDelegate.LoadRequest,
-        ): GeckoResult<AllowOrDeny> {
-            val scheme = request.uri.substringBefore(':').lowercase()
-            // Pages try to hand off to the official apps (intent:, instagram:, vnd.youtube:).
-            if (scheme !in ALLOWED_SCHEMES) return GeckoResult.deny()
-
-            when (val decision = Rules.check(request.uri, tab.url)) {
-                is Rules.Decision.Redirect -> {
-                    session.loadUri(decision.url)
-                    return GeckoResult.deny()
-                }
-                Rules.Decision.Block -> {
-                    showBlocked()
-                    return GeckoResult.deny()
-                }
-                Rules.Decision.Allow -> {}
-            }
-
-            // There's only one window per tab, so pop-ups open in place.
-            if (request.target == NavigationDelegate.TARGET_WINDOW_NEW) {
-                session.loadUri(request.uri)
-                return GeckoResult.deny()
-            }
-            return GeckoResult.allow()
-        }
-
-        /**
-         * Every URL change, including in-page navigation that never reaches
-         * onLoadRequest (Instagram and YouTube are single-page apps).
-         */
-        override fun onLocationChange(
-            session: GeckoSession,
-            url: String?,
-            perms: MutableList<ContentPermission>,
-            hasUserGesture: Boolean,
-        ) {
-            if (url == null) return
-            when (val decision = Rules.check(url, tab.url)) {
-                is Rules.Decision.Redirect -> session.load(
-                    GeckoSession.Loader()
-                        .uri(decision.url)
-                        // Otherwise Back would return to the Short and redirect again.
-                        .flags(GeckoSession.LOAD_FLAGS_REPLACE_HISTORY)
-                )
-                Rules.Decision.Block -> {
-                    showBlocked()
-                    if (tab.url != null) {
-                        session.goBack()
-                    } else {
-                        session.load(
-                            GeckoSession.Loader()
-                                .uri(tab.site.homeUrl)
-                                .flags(GeckoSession.LOAD_FLAGS_REPLACE_HISTORY)
-                        )
-                    }
-                }
-                Rules.Decision.Allow -> tab.url = url
-            }
-        }
-    }
-
-    private inner class Content(private val tab: Tab) : GeckoSession.ContentDelegate {
-        override fun onFullScreen(session: GeckoSession, fullScreen: Boolean) {
-            setFullScreen(fullScreen)
-        }
-
-        // The page's process died (e.g. low memory): reopen where we were.
-        override fun onCrash(session: GeckoSession) = reopen(session)
-
-        override fun onKill(session: GeckoSession) = reopen(session)
-
-        private fun reopen(session: GeckoSession) {
-            if (!session.isOpen) session.open(runtime)
-            session.loadUri(tab.url ?: tab.site.homeUrl)
-        }
-    }
-
-    private inner class Progress(private val tab: Tab) : GeckoSession.ProgressDelegate {
-        override fun onProgressChange(session: GeckoSession, progress: Int) {
-            if (current !== tab) return
-            this@MainActivity.progress.progress = progress
-            this@MainActivity.progress.visibility = if (progress in 1..99) View.VISIBLE else View.GONE
-        }
+    /** The tab bar and progress bar are hidden for full-screen video and picture-in-picture. */
+    private fun updateChrome() {
+        val hide = fullScreen || inPictureInPicture
+        tabBar.visibility = if (hide) View.GONE else View.VISIBLE
+        if (hide) progress.visibility = View.GONE
     }
 
     private companion object {
@@ -278,6 +282,6 @@ class MainActivity : Activity() {
         const val EXTENSION_URI = "resource://android/assets/extension/"
         const val EXTENSION_ID = "webbox@antireelshorts"
         const val KEY_TAB = "tab"
-        val ALLOWED_SCHEMES = setOf("http", "https", "about", "data", "blob", "javascript")
+        const val ACTION_PIP_PLAY_PAUSE = "com.antireelshorts.webbox.PIP_PLAY_PAUSE"
     }
 }

@@ -1,0 +1,11 @@
+/*
+ * Hides the Reels UI on Instagram. The Instagram tab is a plain WebView, so
+ * the app injects this itself (with webbox/rules/remote.css on top).
+ */
+
+/* "Reels" in the navigation bar. */
+a[href="/reels/"] { display: none !important; }
+a[href^="/reels/"] { display: none !important; }
+
+/* "Reels" tab on profile pages. */
+a[href$="/reels/"] { display: none !important; }

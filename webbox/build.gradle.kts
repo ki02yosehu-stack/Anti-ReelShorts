@@ -15,8 +15,8 @@ android {
         applicationId = "com.antireelshorts.webbox"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
     }
 
     buildTypes {
@@ -49,4 +49,6 @@ android {
 dependencies {
     // arm64 only: GeckoView bundles a whole browser engine per CPU type.
     implementation("org.mozilla.geckoview:geckoview-arm64-v8a:159.0.20261102144711")
+    // Instagram tab (system WebView): injecting the hide rules before the page draws.
+    implementation("androidx.webkit:webkit:1.14.0")
 }
