@@ -23,9 +23,6 @@ jobs:
       - name: Build
         run: ./gradlew --no-daemon assembleDebug
 
-      - name: Show GeckoView version
-        run: ./gradlew --no-daemon -q :webbox:dependencies --configuration debugRuntimeClasspath | grep -m1 geckoview
-
       - name: Rename APKs
         run: |
           cp app/build/outputs/apk/debug/app-debug.apk AntiReelShorts.apk

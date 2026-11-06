@@ -5,7 +5,7 @@ plugins {
 
 android {
     namespace = "com.antireelshorts.webbox"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.antireelshorts.webbox"
@@ -25,12 +25,15 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
 
 dependencies {
     // arm64 only: GeckoView bundles a whole browser engine per CPU type.
-    implementation("org.mozilla.geckoview:geckoview-arm64-v8a:+")
+    implementation("org.mozilla.geckoview:geckoview-arm64-v8a:159.0.20261102144711")
 }
