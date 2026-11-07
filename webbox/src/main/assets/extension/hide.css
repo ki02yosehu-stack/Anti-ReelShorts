@@ -22,10 +22,17 @@ ytm-shorts-lockup-view-model-v2 { display: none !important; }
 /* "Shorts" tab on channel pages. */
 a[href$="/shorts"] { display: none !important; }
 
-/* Picture-in-picture: only the player, filling the small window (player.js). */
+/*
+ * Picture-in-picture (player.js): only the video and its captions, filling
+ * the small window. The player's own controls are hidden too; Android shows
+ * its own play/pause button on the window.
+ */
 html.anti-reelshorts-pip body * { visibility: hidden !important; }
-html.anti-reelshorts-pip #player-container-id,
-html.anti-reelshorts-pip #player-container-id * { visibility: visible !important; }
+html.anti-reelshorts-pip #player-container-id video { visibility: visible !important; }
+html.anti-reelshorts-pip #player-container-id .ytp-caption-window-container,
+html.anti-reelshorts-pip #player-container-id .ytp-caption-window-container *,
+html.anti-reelshorts-pip #player-container-id .caption-window,
+html.anti-reelshorts-pip #player-container-id .caption-window * { visibility: visible !important; }
 html.anti-reelshorts-pip #player-container-id {
   position: fixed !important;
   inset: 0 !important;
